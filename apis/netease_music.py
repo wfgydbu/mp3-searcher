@@ -1,8 +1,57 @@
+import base64
+import codecs
 import hashlib
-import execjs
-import requests
+import math
+import random
 
+import requests
 from base import BaseTemplate
+from Crypto.Cipher import AES
+
+
+class NeteaseEncryptionScheme(object):
+    '''
+    NeteaseMusic的加密框架，直接调用encrypt即可。
+    加密的对象是js中的变量d，需要在chrome中调试才能获取。
+    之所以选择自己实现是因为直接调用js的话不能兼容中文搜索词。
+    加密部分参考：https://github.com/pengshiqi/NetEaseMusicCrawl/blob/master/NetEaseMusicCrawl.py，略作修改。
+    '''
+
+    def __init__(self):
+        self.pubkey = '010001'
+        self.modulus = '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7'
+        self.nouce = '0CoJUm6Qyw8W8jud'
+        self.random_padding = self.__get_random_padding()
+
+    def __get_random_padding(self):
+        str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        res = ''
+        for x in range(16):
+            index = math.floor(random.random() * len(str))
+            res += str[index]
+        return res
+
+    def __aes_encrypt(self, text, key):
+        iv = '0102030405060708'
+        pad = 16 - len(text.encode('utf-8')) % 16
+        text = text + pad * chr(pad)
+        encryptor = AES.new(key, AES.MODE_CBC, iv)
+        encrypted_text = base64.b64encode(encryptor.encrypt(text))
+        return encrypted_text
+
+    def __rsa_encrypt(self):
+        text = self.random_padding[::-1]
+        rs = int(codecs.encode(text.encode('utf-8'), 'hex_codec'), 16) ** int(self.pubkey, 16) % int(self.modulus, 16)
+        return format(rs, 'x').zfill(256)
+
+    def encrypt(self, text):
+        params = self.__aes_encrypt(text, self.nouce)
+        params = self.__aes_encrypt(params.decode('utf-8'), self.random_padding)
+        encSecKey = self.__rsa_encrypt()
+        return {
+            'params': params,
+            'encSecKey': encSecKey
+        }
 
 
 class NeteaseMusic(BaseTemplate):
@@ -10,7 +59,6 @@ class NeteaseMusic(BaseTemplate):
         with open('asserts/netease.js', 'r') as f:
             self.js = f.read()
 
-        self.context = execjs.compile(self.js) if self.js else None
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
             'Referer': 'https://music.163.com/'
@@ -18,9 +66,6 @@ class NeteaseMusic(BaseTemplate):
         self.func_search = self.get_search_list_by_keyword
         self.func_link = self.get_song_link_by_id
         self.func_detail = self.get_song_detail_by_id
-
-    def __get_enc(self, text=''):
-        return self.context.call('d', text, '010001', '00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7', '0CoJUm6Qyw8W8jud')
 
     def __get_id_md5(self, id):
         if not id:
@@ -44,16 +89,13 @@ class NeteaseMusic(BaseTemplate):
 
     def get_search_list_by_keyword(self, keyword):
         url = 'https://music.163.com/weapi/cloudsearch/get/web?csrf_token='
-        enc = self.__get_enc('{"hlpretag":"<span class=\\"s-fc7\\">","hlposttag":"</span>","s":"%s","type":"1","offset":"0","total":"true","limit":"30","csrf_token":""}' % keyword)
-        formdata = {
-            'params': enc['encText'],
-            'encSecKey': enc['encSecKey']
-        }
+        formdata = NeteaseEncryptionScheme().encrypt('{"hlpretag":"<span class=\\"s-fc7\\">","hlposttag":"</span>","s":"%s","type":"1","offset":"0","total":"true","limit":"30","csrf_token":""}' % keyword)
 
-        songs = self.__get_json(url, formdata)['result']['songs']
-        if not songs:
+        songCount = self.__get_json(url, formdata)['result'].get('songCount', '')
+        if not songCount or int(songCount) == 0:
             return None
 
+        songs = self.__get_json(url, formdata)['result']['songs']
         ret = []
         for song in songs:
             dict = {}
@@ -70,11 +112,7 @@ class NeteaseMusic(BaseTemplate):
             'Cookie': '_ntes_nuid=%s' % self.__get_id_md5(id)
         }, **self.headers)
 
-        enc = self.__get_enc('{"ids":"[%s]","br":128000,"csrf_token":""}' % id)
-        formdata = {
-            'params': enc['encText'],
-            'encSecKey': enc['encSecKey']
-        }
+        formdata = NeteaseEncryptionScheme().encrypt('{"ids":"[%s]","br":128000,"csrf_token":""}' % id)
 
         ret = self.__get_json(url, formdata, headers)
         return {'url': ret['data'][0]['url']} if ret else None
