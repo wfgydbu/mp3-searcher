@@ -13,7 +13,7 @@ class NeteaseEncryptionScheme(object):
     '''
     NeteaseMusic的加密框架，直接调用encrypt即可。
     加密的对象是js中的变量d，需要在chrome中调试才能获取。
-    之所以选择自己实现是因为直接调用js的话不能兼容中文搜索词。
+    之所以选择自己实现而不是直接调用js是因为后者不能兼容中文搜索词（和padding有关）。
     加密部分参考：https://github.com/pengshiqi/NetEaseMusicCrawl/blob/master/NetEaseMusicCrawl.py，略作修改。
     '''
 
