@@ -5,7 +5,7 @@ import math
 import random
 
 import requests
-from base import BaseTemplate
+from apis.base import BaseTemplate
 from Crypto.Cipher import AES
 
 
@@ -56,9 +56,6 @@ class NeteaseEncryptionScheme(object):
 
 class NeteaseMusic(BaseTemplate):
     def __init__(self):
-        with open('asserts/netease.js', 'r') as f:
-            self.js = f.read()
-
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
             'Referer': 'https://music.163.com/'
@@ -102,6 +99,7 @@ class NeteaseMusic(BaseTemplate):
             dict['id'] = song['id']
             dict['ar'] = '/'.join([ar['name'] for ar in song['ar']])
             dict['name'] = song['name']
+            dict['source'] = 'netease'
             ret.append(dict)
 
         return {'list': ret}

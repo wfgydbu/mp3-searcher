@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block header %}Detail{% endblock %}
+
+{% block content %}
+{% if song_detail %}
+<table>
+    {% for key, value in song_detail.items() %}
+    <tr>
+        <th>{{ key }}</th>
+        <th>{{ value }}</th>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+{% endblock %}
