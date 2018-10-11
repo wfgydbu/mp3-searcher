@@ -13,7 +13,7 @@ class NeteaseEncryptionScheme(object):
     '''
     NeteaseMusic的加密框架，直接调用encrypt即可。
     加密的对象是js中的变量d，需要在chrome中调试才能获取。
-    之所以选择自己实现而不是直接调用js是因为后者不能兼容中文搜索词（和padding有关）。
+    之所以选择自己实现而不是直接调用js是因为后者不能兼容中文搜索词（和padding有关, 未做深究）。
     加密部分参考：https://github.com/pengshiqi/NetEaseMusicCrawl/blob/master/NetEaseMusicCrawl.py，略作修改。
     '''
 
@@ -56,12 +56,13 @@ class NeteaseEncryptionScheme(object):
 
 class NeteaseMusic(BaseTemplate):
     def __init__(self):
+        super().__init__()
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
             'Referer': 'https://music.163.com/'
         }
         self.func_search = self.get_search_list_by_keyword
-        self.func_link = self.get_song_link_by_id
+        self.func_lyric = self.get_song_lyric_by_id
         self.func_detail = self.get_song_detail_by_id
 
     def __get_id_md5(self, id):
@@ -95,14 +96,14 @@ class NeteaseMusic(BaseTemplate):
         songs = self.__get_json(url, formdata)['result']['songs']
         ret = []
         for song in songs:
-            dict = {}
+            dict = {}.fromkeys(self.SEARCH_RES_FIELDS)
             dict['id'] = song['id']
             dict['ar'] = '/'.join([ar['name'] for ar in song['ar']])
             dict['name'] = song['name']
             dict['source'] = 'netease'
             ret.append(dict)
 
-        return {'list': ret}
+        return ret
 
     def get_song_link_by_id(self, id):
         url = 'https://music.163.com/weapi/song/enhance/player/url?csrf_token='
@@ -119,10 +120,40 @@ class NeteaseMusic(BaseTemplate):
         url = 'https://music.163.com/api/song/detail/?id=%s&ids=[%s]&csrf_token=' % (id, id)
 
         ret = self.__get_json(url)
-        return ret['songs'][0] if ret else None
+        if not ret:
+            return None
+
+        song_detail = ret['songs'][0]
+        dict = {}.fromkeys(self.SONG_DETAIL_FIELDS)
+        dict['source'] = 'netease_music'
+        dict['id'] = song_detail['id']
+        dict['song_name'] = song_detail['name']
+        link = self.get_song_link_by_id(id)
+        dict['song_url'] = self.pretend_https(link['url']) if link else None
+        # dict['song_pic'] = song_detail.get('')
+        dict['song_lyric'] = self.get_song_lyric_by_id(id)
+        dict['song_interval'] = song_detail['hMusic']['playTime']
+        dict['ablum_id'] = song_detail['album']['id']
+        dict['ablum_name'] = song_detail['album']['name']
+        dict['ablum_pic'] = self.pretend_https(song_detail['album']['picUrl'])
+        dict['ablum_intro'] = song_detail['album']['description']
+        artists = []
+        for artist in song_detail['artists']:
+            t_dict = {}.fromkeys(self.SONG_ARTIST_FIELDS)
+            t_dict['artist_id'] = artist['id']
+            t_dict['artist_name'] = artist['name']
+            t_dict['artist_pic'] = artist['picUrl']
+            t_dict['artist_intro'] = artist['briefDesc']
+            artists.append(t_dict)
+        dict['artists'] = artists
+        return dict
+
+    def get_song_lyric_by_id(self, id):
+        # TODO
+        return None
 
 
 if __name__ == '__main__':
-    print(NeteaseMusic().get_search_list_by_keyword('折子戏'))
-    # print(NeteaseMusic().get_song_detail_by_id('440464202'))
-    # print(NeteaseMusic().get_song_link_by_id('440464202'))
+    # print(NeteaseMusic().get_search_list_by_keyword('折子戏'))
+    print(NeteaseMusic().get_song_detail_by_id('440464202'))
+    print(NeteaseMusic().get_song_link_by_id('440464202'))
