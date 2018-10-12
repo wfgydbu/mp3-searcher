@@ -40,15 +40,15 @@ def api_searcher_raw():
     if keyword:
         music_res = []
         if platform in platforms:
-            music_res = platform().func_search(keyword)
+            music_res = platform_to_class[platform]().func_search(keyword)
         else:
             for p in platform_to_class.values():
                 music_res += p().func_search(keyword)
 
-        if raw and raw == '1':
+        if raw and raw is '1':
             return Response(json.dumps(music_res), mimetype='application/json')
         else:
-            return render_template('search.html', audio_name=keyword, music_res_dict=music_res)
+            return render_template('search.html', audio_name=keyword, music_res_list=music_res)
     return exception_handler(404)
 
 
@@ -61,8 +61,8 @@ def api_detail_raw():
         return exception_handler(404)
 
     if song_id:
-        song_detail = platform().func_detail(song_id)
-        if raw and raw == '1':
+        song_detail = platform_to_class[platform]().func_detail(song_id)
+        if raw and raw is '1':
             return Response(json.dumps(song_detail), mimetype='application/json')
         else:
             return render_template('detail.html', song_detail=song_detail)

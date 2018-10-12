@@ -1,31 +1,50 @@
 {% extends 'base.html' %}
 
-{% block header %}Search Result for {{ audio_name }}{% endblock %}
+{% block header %}
+<h1>Search Result for {{ audio_name }}</h1>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+{% endblock %}
 
 {% block content %}
-{% if music_res_dict %}
-<table>
-    <tr>
-        <th>id</th>
-        <th>name</th>
-        <th>author</th>
-        <th>source</th>
-        <th>option</th>
-    </tr>
-    {% for music in music_res_dict['list'] %}
-    </tr>
-    <th>{{ music.id }}</th>
-    <th>{{ music.name }}</th>
-    <th>{{ music.ar }}</th>
-    <th>{{ music.source }}</th>
-    <th>
-        <a href="/api/url?id={{ music.id }}">url</a>
-        &nbsp
-        <a href="/api/detail?id={{ music.id }}">detail</a>
-    </th>
-    </tr>
-    {% endfor %}
-</table>
+{% if music_res_list %}
+
+<div id="users">
+    <input class="search" placeholder="Search" />
+    <button class="sort" data-sort="name">
+        Sort by name
+    </button>
+    <table>
+        <tbody class="list">
+            <tr>
+                <th>id</th>
+                <th>name</th>
+                <th>author</th>
+                <th>source</th>
+                <th>option</th>
+            </tr>
+            {% for music in music_res_list %}
+            </tr>
+            <td class="id">{{ music.id }}</td>
+            <td class="name">{{ music.name }}</td>
+            <td class="ar">{{ music.ar }}</td>
+            <td class="source">{{ music.source }}</td>
+            <td class="detail">
+                <a href="/api/detail?id={{ music.id }}&platform={{ music.source }}">detail</a>
+            </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/list.min.js') }}"></script>
+<script>
+    var options = {
+        valueNames: ['name', 'born']
+    };
+
+    var userList = new List('users', options);
+</script>
 
 {% endif %}
 {% endblock %}

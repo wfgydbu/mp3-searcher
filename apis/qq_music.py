@@ -23,7 +23,7 @@ class QQMusic(BaseTemplate):
             'cr': 1,
             'w': keyword,
             'p': 1,
-            'n': 20,
+            'n': 10,
             'format': 'jsonp',
             'jsonpCallback': cb_fn_name,
         }
@@ -40,7 +40,7 @@ class QQMusic(BaseTemplate):
             dict['id'] = song['songmid']
             dict['ar'] = '/'.join([ar['name'] for ar in song['singer']])
             dict['name'] = song['songname']
-            dict['source'] = 'qqmusic'
+            dict['source'] = 'qq'
             ret.append(dict)
 
         return ret
