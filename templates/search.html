@@ -1,35 +1,32 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>Search Result for {{ audio_name }}</h1>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+<div class='title'>
+    <h1>Search Result for {{ audio_name }}</h1>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+</div>
 {% endblock %}
 
 {% block content %}
 {% if music_res_list %}
 
-<div id="users">
+<div id="songs">
     <input class="search" placeholder="Search" />
-    <button class="sort" data-sort="name">
-        Sort by name
-    </button>
     <table>
         <tbody class="list">
             <tr>
-                <th>id</th>
                 <th>name</th>
-                <th>author</th>
+                <th>artist</th>
                 <th>source</th>
-                <th>option</th>
+                <th>detail</th>
             </tr>
             {% for music in music_res_list %}
             </tr>
-            <td class="id">{{ music.id }}</td>
             <td class="name">{{ music.name }}</td>
             <td class="ar">{{ music.ar }}</td>
             <td class="source">{{ music.source }}</td>
             <td class="detail">
-                <a href="/api/detail?id={{ music.id }}&platform={{ music.source }}">detail</a>
+                <a href="/api/detail?id={{ music.id }}&platform={{ music.source }}">detail - {{ music.id }}</a>
             </td>
             </tr>
             {% endfor %}
@@ -40,10 +37,10 @@
 <script type="text/javascript" src="{{ url_for('static', filename='js/list.min.js') }}"></script>
 <script>
     var options = {
-        valueNames: ['name', 'born']
+        valueNames: ['name', 'ar', 'source']
     };
 
-    var userList = new List('users', options);
+    var userList = new List('songs', options);
 </script>
 
 {% endif %}

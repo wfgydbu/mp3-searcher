@@ -23,7 +23,7 @@ class QQMusic(BaseTemplate):
             'cr': 1,
             'w': keyword,
             'p': 1,
-            'n': 10,
+            'n': 5,
             'format': 'jsonp',
             'jsonpCallback': cb_fn_name,
         }

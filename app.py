@@ -4,10 +4,14 @@ import configure as Conf
 from apis.netease_music import NeteaseMusic
 from apis.qq_music import QQMusic
 from flask import Flask, Response, request, render_template
+from datetime import timedelta
 
 logging.basicConfig(level=Conf.LOG_LEVEL, format=Conf.LOG_FORMAT)
 app = Flask(__name__)
 app.jinja_env.auto_reload = True
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = timedelta(seconds=1)
+app.send_file_max_age_default = timedelta(seconds=1)
 
 err = {
     '404': '404.html'
@@ -43,7 +47,8 @@ def api_searcher_raw():
             music_res = platform_to_class[platform]().func_search(keyword)
         else:
             for p in platform_to_class.values():
-                music_res += p().func_search(keyword)
+                r = p().func_search(keyword)
+                music_res += r if r else []
 
         if raw and raw is '1':
             return Response(json.dumps(music_res), mimetype='application/json')

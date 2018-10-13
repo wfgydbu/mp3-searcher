@@ -87,7 +87,7 @@ class NeteaseMusic(BaseTemplate):
 
     def get_search_list_by_keyword(self, keyword):
         url = 'https://music.163.com/weapi/cloudsearch/get/web?csrf_token='
-        formdata = NeteaseEncryptionScheme().encrypt('{"hlpretag":"<span class=\\"s-fc7\\">","hlposttag":"</span>","s":"%s","type":"1","offset":"0","total":"true","limit":"10","csrf_token":""}' % keyword)
+        formdata = NeteaseEncryptionScheme().encrypt('{"hlpretag":"<span class=\\"s-fc7\\">","hlposttag":"</span>","s":"%s","type":"1","offset":"0","total":"true","limit":"5","csrf_token":""}' % keyword)
 
         songCount = self.__get_json(url, formdata)['result'].get('songCount', '')
         if not songCount or int(songCount) == 0:
