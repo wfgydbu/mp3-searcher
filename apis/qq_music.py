@@ -55,13 +55,16 @@ class QQMusic(BaseTemplate):
 
         song_detail = json.loads(page_json[0])
         dict = {}.fromkeys(self.SONG_DETAIL_FIELDS)
-        dict['source'] = 'qqmusic'
+        dict['source'] = 'qq'
         dict['id'] = song_detail.get('songid')
         dict['song_name'] = song_detail.get('songname')
         dict['song_url'] = self.pretend_https(song_detail.get('m4aUrl'))
         dict['song_pic'] = self.pretend_https(song_detail.get('pic'))
         dict['song_lyric'] = self.get_song_lyric_by_id(id)
-        dict['song_interval'] = song_detail.get('interval')
+        interval = int(song_detail.get('interval'))
+
+        dict['song_interval_min'] = interval
+        dict['song_interval_sec'] = interval
         dict['ablum_id'] = song_detail.get('albumid')
         dict['ablum_name'] = song_detail.get('albumname')
         # dict['ablum_pic'] = song_detail.get('')

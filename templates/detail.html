@@ -1,18 +1,67 @@
 {% extends 'base.html' %}
 
 {% block header %}
-<h1>Detail</h1>
+<div class='title'>
+    <h1>{{ song_detail["song_name"] }}</h1>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+</div>
 {% endblock %}
 
 {% block content %}
 {% if song_detail %}
 <table>
-    {% for key, value in song_detail.items() %}
     <tr>
-        <th>{{ key }}</th>
-        <th>{{ value }}</th>
+        <th>来源</th>
+        <td>{{ song_detail["source"] }}</td>
     </tr>
-    {% endfor %}
+    <tr>
+        <th>ID</th>
+        <td>{{ song_detail["id"] }}</td>
+    </tr>
+    <tr>
+        <th>歌曲链接</th>
+        <td><a href={{ song_detail["song_url"] }}>地址</a></td>
+    </tr>
+    <tr>
+        <th>歌曲名字</th>
+        <td>{{ song_detail["song_name"] }}</td>
+    </tr>
+    <tr>
+        <th>歌曲图片</th>
+        <td><img src={{ song_detail["song_pic"] }}></img></td>
+    </tr>
+    <tr>
+        <th>歌词</th>
+        <td>{{ song_detail["song_lyric"] }}</td>
+    </tr>
+    <tr>
+        <th>时长</th>
+        <td>{{ song_detail["song_interval_min"] }}:{{ song_detail["song_interval_sec"] }}</td>
+    </tr>
+    <tr>
+        <th>专辑ID</th>
+        <td>{{ song_detail["ablum_id"] }}</td>
+    </tr>
+    <tr>
+        <th>专辑名字</th>
+        <td>{{ song_detail["ablum_name"] }}</td>
+    </tr>
+    <tr>
+        <th>专辑图片</th>
+        <td>{{ song_detail["ablum_pic"] }}</td>
+    </tr>
+    <tr>
+        <th>专辑介绍</th>
+        <td>{{ song_detail["ablum_intro"] }}</td>
+    </tr>
+    <tr>
+        <th>艺术家</th>
+        {% for artist in song_detail["artists"] %}
+        <td>{{ artist['artist_id'] }} - {{ artist['artist_name'] }} - {{ artist['artist_pic'] }} - {{
+            artist['artist_intro']
+            }}</td>
+        {% endfor %}
+    </tr>
 </table>
 {% endif %}
 {% endblock %}

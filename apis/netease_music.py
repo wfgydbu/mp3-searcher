@@ -125,7 +125,7 @@ class NeteaseMusic(BaseTemplate):
 
         song_detail = ret['songs'][0]
         dict = {}.fromkeys(self.SONG_DETAIL_FIELDS)
-        dict['source'] = 'netease_music'
+        dict['source'] = 'netease'
         dict['id'] = song_detail['id']
         dict['song_name'] = song_detail['name']
         link = self.get_song_link_by_id(id)
